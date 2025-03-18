@@ -1,6 +1,3 @@
-Aquí tienes un ejemplo de README que explica tu proyecto:
-
-```markdown
 # Product Management API
 
 ## Descripción
