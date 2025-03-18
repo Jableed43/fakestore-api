@@ -18,7 +18,13 @@ describe('ProductsService', () => {
         ProductsService,
         {
           provide: getRepositoryToken(Product),
-          useClass: Repository,
+          useValue: {
+            find: jest.fn(),
+            save: jest.fn(),
+            findOne: jest.fn(),
+            delete: jest.fn(),
+            create: jest.fn(),
+          },
         },
         {
           provide: HttpService,
@@ -61,6 +67,7 @@ describe('ProductsService', () => {
     };
 
     jest.spyOn(httpService, 'get').mockReturnValue(of(mockResponse));
+    jest.spyOn(productsRepository, 'find').mockResolvedValue([]); // Mock empty DB response
 
     const products = await service.findAll();
     expect(products).toHaveLength(1);
@@ -89,9 +96,12 @@ describe('ProductsService', () => {
       image: 'https://example.com/image.jpg',
     };
 
-    jest
-      .spyOn(productsRepository, 'save')
-      .mockResolvedValue(newProduct as Product);
+    const savedProduct = new Product();
+    savedProduct.id = 1;
+    savedProduct.title = newProduct.title;
+    savedProduct.price = newProduct.price;
+
+    jest.spyOn(productsRepository, 'save').mockResolvedValue(savedProduct); // Mock save to return the new product
 
     const createdProduct = await service.create(newProduct);
     expect(createdProduct.title).toBe('Nuevo Producto');
@@ -114,9 +124,7 @@ describe('ProductsService', () => {
   it('should delete a product', async () => {
     jest
       .spyOn(productsRepository, 'delete')
-      .mockResolvedValue({ affected: 1 } as
-        | DeleteResult
-        | Promise<DeleteResult>);
+      .mockResolvedValue({ affected: 1 } as DeleteResult);
 
     await expect(service.remove(1)).resolves.toBeUndefined();
   });
